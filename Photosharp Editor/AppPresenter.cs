@@ -20,17 +20,22 @@ namespace Photosharp_Editor
             _mainWindow.RotationAngleSet = EditingRotationAngleSet;
             _mainWindow.RotationDirectionSet = EditingRotationDirectionSet;
             _mainWindow.BrightnessLevelSet = EditingBrightnessSet;
-            _mainWindow.GrayscaleFilterSet = GrayscaleFilterSet;
+			_mainWindow.GrayscaleFilterSet = GrayscaleFilterSet;
 
         }
 
         public void Run()
         {
             Application.Run(_mainWindow);
-        }
+		}
 
-        // This code runs on a background thread when the worker is started
-        private void ExportWorker_DoWork(object? sender, DoWorkEventArgs e)
+		private void EditAndExportImages()
+		{
+			new ProgressForm("Exporting images", _model.Images.Count, ExportWorker_DoWork, index => _model.Images[index].Name).ShowDialog(_mainWindow);
+		}
+
+		// This code runs on a background thread when the worker is started
+		private void ExportWorker_DoWork(object? sender, DoWorkEventArgs e)
         {
             BackgroundWorker? bw = sender as BackgroundWorker;
 
@@ -72,8 +77,9 @@ namespace Photosharp_Editor
         }
 
         private void AddFiles(string[] filePaths)
-        {
-            foreach (string path in filePaths)
+		{
+			Cursor.Current = Cursors.WaitCursor;
+			foreach (string path in filePaths)
             {
                 string fileName = Path.GetFileName(path);
 
@@ -97,7 +103,8 @@ namespace Photosharp_Editor
                 UpdateImagePreview();
                 _mainWindow.UpdateEditingImageList(_model.Images.Select(pair => pair.Name).ToList(), _model.SelectedIndex);
             }
-        }
+			Cursor.Current = Cursors.Default;
+		}
 
         private void RemoveImageAt(int index)
         {
@@ -114,11 +121,6 @@ namespace Photosharp_Editor
         {
             _model.SelectedIndex = index;
             UpdateImagePreview();
-        }
-
-        private void EditAndExportImages()
-        {
-            new ProgressForm("Exporting images", _model.Images.Count, ExportWorker_DoWork, index => _model.Images[index].Name).ShowDialog(_mainWindow);
         }
 
         private void EditingRotationAngleSet(EditingRotationAngle? angle)
